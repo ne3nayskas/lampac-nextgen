@@ -6,6 +6,7 @@ using Shared.Models.Module;
 using Shared.Models.Module.Interfaces;
 using System.Collections.Generic;
 using LampaWeb.Models;
+using LampaWeb.Services;
 
 namespace LampaWeb
 {

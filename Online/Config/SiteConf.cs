@@ -1,12 +1,93 @@
-using Shared.Models.Online.Settings;
+﻿using Shared.Models.Online.Settings;
 
 namespace Online.Config
 {
     public class SiteConf
     {
+        /// <summary>
+        /// api.vokino.org
+        /// api.vokino.pro
+        /// </summary>
+        public VokinoSettings VoKino { get; set; } = new VokinoSettings("VoKino", "http://api.vokino.org")
+        {
+            displayindex = 300,
+            streamproxy = false,
+            rchstreamproxy = "web",
+            rhub_safety = false
+        };
+
+        /// <summary>
+        /// http://filmixapp.cyou
+        /// http://filmixapp.vip
+        /// http://fxapp.biz
+        /// </summary>
+        public FilmixSettings Filmix { get; set; } = new FilmixSettings("Filmix", "http://filmixapp.cyou")
+        {
+            displayindex = 305,
+            rhub_safety = false,
+            rch_access = "apk",
+            stream_access = "apk,cors,web",
+            reserve = false,
+            headers = HeadersModel.Init(
+                ("Accept-Encoding", "gzip")
+            ).ToDictionary()
+        };
+
+        public FilmixSettings FilmixTV { get; set; } = new FilmixSettings("FilmixTV", "https://api.filmix.tv")
+        {
+            enable = false,
+            displayindex = 310,
+            httpversion = 2,
+            rhub_safety = false,
+            pro = true,
+            stream_access = "apk,cors,web",
+            headers = HeadersModel.Init(
+                ("user-agent", "Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) 76.0.3809.146/6.0 TV Safari/537.36")
+            ).ToDictionary()
+        };
+
+        public FilmixSettings FilmixPartner { get; set; } = new FilmixSettings("FilmixPartner", "http://5.61.56.18/partner_api")
+        {
+            enable = false,
+            displayindex = 315,
+            stream_access = "apk,cors,web"
+        };
+
+        /// <summary>
+        /// https://api.srvkp.com - стандартный
+        /// https://cdn32.lol/api- apk
+        /// https://cdn4t.store/api - apk
+        /// https://kpapp.link/api - smart tv
+        /// https://api.service-kp.com - старый
+        /// </summary>
+        public KinoPubSettings KinoPub { get; set; } = new KinoPubSettings("KinoPub", "https://api.srvkp.com")
+        {
+            displayindex = 320,
+            httpversion = 2,
+            rhub_safety = false,
+            filetype = "hls", // hls | hls4 | mp4
+            stream_access = "apk,cors,web",
+            headers = HeadersModel.Init(Http.defaultFullHeaders,
+                ("sec-fetch-dest", "document"),
+                ("sec-fetch-mode", "navigate"),
+                ("sec-fetch-site", "none"),
+                ("sec-fetch-user", "?1"),
+                ("upgrade-insecure-requests", "1")
+            ).ToDictionary()
+        };
+
+        public AllohaSettings Alloha { get; set; } = new AllohaSettings("Alloha", "https://apbugall.org/v2", "https://torso-as.stloadi.live", "", "", true, true)
+        {
+            displayindex = 325,
+            httpversion = 2,
+            rch_access = "apk,cors,web",
+            stream_access = "apk,cors,web",
+            reserve = true
+        };
+
         public RezkaSettings Rezka { get; set; } = new RezkaSettings("Rezka", "https://hdrezka.me", true)
         {
-            displayindex = 500,
+            displayindex = 330,
             stream_access = "apk,cors,web",
             ajax = true,
             reserve = true,
@@ -15,202 +96,43 @@ namespace Online.Config
             headers = Http.defaultUaHeaders
         };
 
-        public KinobaseSettings Kinobase { get; set; } = new KinobaseSettings("Kinobase", "https://kinobase.org", true, hdr: true)
-        {
-            displayindex = 505,
-            httpversion = 2,
-            stream_access = "apk,cors,web",
-            geostreamproxy = ["ALL"]
-        };
-
-        public AllohaSettings Mirage { get; set; } = new AllohaSettings("Mirage", "https://api.apbugall.org", "https://quadrillion-as.allarknow.online", "6892d506bbdd5790e0ca047ff39462", "", true, true)
+        public RezkaSettings RezkaPrem { get; set; } = new RezkaSettings("RezkaPrem", null)
         {
             enable = false,
-            displayindex = 510,
-            streamproxy = true,
-            httpversion = 2,
-            headers = Http.defaultFullHeaders
-        };
-
-        public OnlinesSettings VideoDB { get; set; } = new OnlinesSettings("VideoDB", "https://kinogo.media", "https://30bf3790.obrut.show", streamproxy: true)
-        {
-            displayindex = 515,
-            httpversion = 2,
-            rch_access = "apk",
-            stream_access = "apk,cors,web",
-            priorityBrowser = "http",
-            imitationHuman = true,
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("sec-fetch-storage-access", "active"),
-                ("upgrade-insecure-requests", "1")
-            ).ToDictionary(),
-            headers_stream = HeadersModel.Init(Http.defaultFullHeaders,
-                ("accept", "*/*"),
-                ("origin", "https://kinogo.media"),
-                ("referer", "https://kinogo.media/"),
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "same-site")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings FanCDN { get; set; } = new OnlinesSettings("FanCDN", "https://fanserial.me", streamproxy: true)
-        {
-            displayindex = 520,
-            rch_access = "apk",
             rhub_safety = false,
-            httpversion = 2,
-            imitationHuman = true,
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("sec-fetch-storage-access", "active"),
-                ("upgrade-insecure-requests", "1")
-            ).ToDictionary(),
-            headers_stream = HeadersModel.Init(Http.defaultFullHeaders,
-                ("origin", "https://fanserial.me"),
-                ("referer", "https://fanserial.me/"),
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "same-site")
-            ).ToDictionary()
+            displayindex = 331,
+            stream_access = "apk,cors,web",
+            reserve = true,
+            hls = true,
+            scheme = "http"
         };
 
-        public OnlinesSettings FlixCDN { get; set; } = new OnlinesSettings("FlixCDN", "https://player0.flixcdn.space", "https://api0.flixcdn.biz/api", streamproxy: true)
+        public OnlinesSettings GetsTV { get; set; } = new OnlinesSettings("GetsTV", "https://getstv.com")
         {
             enable = false,
-            displayindex = 525,
-            rch_access = "apk",
+            displayindex = 335,
             stream_access = "apk,cors,web",
-            httpversion = 1,
-            headers_stream = HeadersModel.Init(
-                ("origin", "https://player0.flixcdn.space"),
-                ("referer", "https://player0.flixcdn.space/"),
-                ("sec-fetch-dest", "video"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "cross-site")
+            rhub_safety = false,
+            headers = HeadersModel.Init(
+                ("user-agent", "Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.34 Safari/537.36 WebAppManager")
             ).ToDictionary()
         };
 
-        public OnlinesSettings Kinogo { get; set; } = new OnlinesSettings("Kinogo", "https://kinogo.luxury")
+        public OnlinesSettings iRemux { get; set; } = new OnlinesSettings("iRemux", "https://megaoblako.com")
         {
-            displayindex = 530,
-            rch_access = "apk",
-            stream_access = "apk,cors",
-            rchstreamproxy = "web"
+            enable = false,
+            displayindex = 340,
+            rchstreamproxy = "web",
+            geostreamproxy = ["UA"]
         };
 
-        public OnlinesSettings CDNvideohub { get; set; } = new OnlinesSettings("CDNvideohub", "https://plapi.cdnvideohub.com", streamproxy: true)
+        /// <summary>
+        /// https://iptv.online/ru/dealers/api
+        /// </summary>
+        public OnlinesSettings IptvOnline { get; set; } = new OnlinesSettings("IptvOnline", "https://iptv.online", enable: false)
         {
-            displayindex = 540,
-            rch_access = "apk,cors",
-            stream_access = "apk,cors",
-            httpversion = 2,
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("referer", "https://hdkino.pub/"),
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "cross-site")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings LeProduction { get; set; } = new OnlinesSettings("LeProduction", "https://www.le-production.tv")
-        {
-            displayindex = 545,
-            rch_access = "apk,cors",
-            stream_access = "apk,cors",
-            rchstreamproxy = "web"
-        };
-
-        public OnlinesSettings VeoVeo { get; set; } = new OnlinesSettings("VeoVeo", "https://api.rstprgapipt.com")
-        {
-            displayindex = 550,
-            httpversion = 2,
-            stream_access = "apk,cors,web"
-        };
-
-        public CollapsSettings Collaps { get; set; } = new CollapsSettings("Collaps", "https://api.luxembd.ws", streamproxy: true, two: false)
-        {
-            displayindex = 555,
-            rch_access = "apk",
-            stream_access = "apk,cors,web",
-            apihost = "https://api.bhcesh.me",
-            token = "eedefb541aeba871dcfc756e6b31c02e",
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("Origin", "https://kinokrad.my")
-            ).ToDictionary(),
-            headers_stream = HeadersModel.Init(Http.defaultFullHeaders,
-                ("Origin", "https://kinokrad.my"),
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "cross-site"),
-                ("accept", "*/*")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings HDVB { get; set; } = new OnlinesSettings("HDVB", "https://vid1733431681.entouaedon.com", "https://apivb.com", token: "5e2fe4c70bafd9a7414c4f170ee1b192")
-        {
-            displayindex = 560,
-            streamproxy = true,
-            rch_access = "apk",
-            stream_access = "apk,cors,web",
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("referer", "encrypt:kwwsv=22prylhode1rqh2")
-            ).ToDictionary(),
-            headers_stream = HeadersModel.Init(Http.defaultFullHeaders,
-                ("origin", "https://vid1733431681.entouaedon.com"),
-                ("referer", "https://vid1733431681.entouaedon.com/"),
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "same-site")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings RutubeMovie { get; set; } = new OnlinesSettings("RutubeMovie", "https://rutube.ru")
-        {
-            displayindex = 565,
-            streamproxy = true,
-            rch_access = "apk,cors"
-        };
-
-        public OnlinesSettings VkMovie { get; set; } = new OnlinesSettings("VkMovie", "https://api.vkvideo.ru")
-        {
-            displayindex = 570,
-            streamproxy = true,
-            rch_access = "apk,cors",
-            stream_access = "apk,cors",
-            headers = HeadersModel.Init(Http.defaultFullHeaders,
-                ("origin", "https://vkvideo.ru"),
-                ("referer", "https://vkvideo.ru/")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings Videoseed { get; set; } = new OnlinesSettings("Videoseed", "https://videoseed.tv", streamproxy: true, enable: false)
-        {
-            displayindex = 580,
-            stream_access = "apk,cors,web",
-            headers = Http.defaultFullHeaders,
-            headers_stream = HeadersModel.Init(Http.defaultFullHeaders,
-                ("sec-fetch-dest", "empty"),
-                ("sec-fetch-mode", "cors"),
-                ("sec-fetch-site", "cross-site")
-            ).ToDictionary()
-        };
-
-        public OnlinesSettings Vibix { get; set; } = new OnlinesSettings("Vibix", "https://vibix.org", enable: false)
-        {
-            displayindex = 585,
-            rch_access = "apk",
-            stream_access = "apk,cors,web",
-            httpversion = 2,
-            headers = Http.defaultFullHeaders
-        };
-
-        public OnlinesSettings Kinotochka { get; set; } = new OnlinesSettings("Kinotochka", "https://kinovibe.vip")
-        {
-            displayindex = 590,
-            httpversion = 2,
-            rch_access = "apk,cors",
-            stream_access = "apk,cors",
-            rchstreamproxy = "web"
+            displayindex = 345,
+            rhub_safety = false
         };
     }
 }

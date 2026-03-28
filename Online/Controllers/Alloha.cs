@@ -12,7 +12,7 @@ namespace Online.Controllers
 
         List<HeadersModel> bearer;
 
-        public Alloha() : base(ModInit.premiumConf.Alloha)
+        public Alloha() : base(ModInit.siteConf.Alloha)
         {
             requestInitialization += () =>
             {
@@ -55,7 +55,7 @@ namespace Online.Controllers
                 return badInitMsg;
 
             #region search
-            rhubFallback:
+        rhubFallback:
 
             string memKey = string.IsNullOrEmpty(orid)
                 ? $"alloha:search:{imdb_id}:{kinopoisk_id}"

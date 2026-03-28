@@ -8,7 +8,6 @@ using Shared.Models.Events;
 using Shared.Models.Module;
 using Shared.Models.Module.Entrys;
 using Online.SQL;
-using Shared.PlaywrightCore;
 using System.Data;
 using System.Text;
 using IO = System.IO;
@@ -161,7 +160,7 @@ namespace Online.Controllers
                     string mkey = $"externalids:KP_:{_kp}";
                     if (!hybridCache.TryGetValue(mkey, out string _imdbid))
                     {
-                        var alloha = ModInit.premiumConf.Alloha;
+                        var alloha = ModInit.siteConf.Alloha;
                         var proxyManager = new ProxyManager("alloha", alloha);
 
                         string json = await Http.Get($"{alloha.apihost}/?token={alloha.token ?? "04941a9a3ca3ac16e2b4327347bbc1"}&kp=" + _kp, timeoutSeconds: 5, proxy: proxyManager.Get());
@@ -178,7 +177,7 @@ namespace Online.Controllers
             async Task<string> getAlloha(string imdb)
             {
                 string kpid = null;
-                var alloha = ModInit.premiumConf.Alloha;
+                var alloha = ModInit.siteConf.Alloha;
                 var proxyManager = new ProxyManager("alloha", alloha);
 
                 var bearer = HeadersModel.Init(
@@ -200,9 +199,8 @@ namespace Online.Controllers
             async Task<string> getTabus(string imdb)
             {
                 string kpid = null;
-                var proxyManager = new ProxyManager("collaps", ModInit.siteConf.Collaps);
 
-                await Http.GetSpan("https://api.bhcesh.me/franchise/details?token=d39edcf2b6219b6421bffe15dde9f1b3&imdb_id=" + imdb.Remove(0, 2), timeoutSeconds: 5, proxy: proxyManager.Get(), spanAction: json =>
+                await Http.GetSpan("https://api.bhcesh.me/franchise/details?token=d39edcf2b6219b6421bffe15dde9f1b3&imdb_id=" + imdb.Remove(0, 2), timeoutSeconds: 5, spanAction: json =>
                 {
                     kpid = Rx.Match(json, "\"kinopoisk_id\":\"?([0-9]+)\"?");
                 });
@@ -513,22 +511,14 @@ namespace Online.Controllers
             }
             #endregion
 
-            send(ModInit.premiumConf.Filmix);
-            send(ModInit.premiumConf.FilmixTV, "filmixtv");
-            send(ModInit.premiumConf.FilmixPartner, "fxapi");
-
+            send(ModInit.siteConf.Filmix);
+            send(ModInit.siteConf.FilmixTV, "filmixtv");
+            send(ModInit.siteConf.FilmixPartner, "fxapi");
             send(ModInit.siteConf.Rezka);
-            send(ModInit.premiumConf.RezkaPrem, "rhsprem");
-
-            send(ModInit.premiumConf.KinoPub);
-            send(ModInit.premiumConf.GetsTV, "getstv-search");
-            send(ModInit.premiumConf.Alloha, "alloha-search");
-
-            send(ModInit.siteConf.Kinogo);
-            send(ModInit.siteConf.Kinobase);
-            send(ModInit.siteConf.Collaps, "collaps-search");
-            send(ModInit.siteConf.VeoVeo, "veoveo-spider");
-            send(ModInit.siteConf.HDVB, "hdvb-search");
+            send(ModInit.siteConf.RezkaPrem, "rhsprem");
+            send(ModInit.siteConf.KinoPub);
+            send(ModInit.siteConf.GetsTV, "getstv-search");
+            send(ModInit.siteConf.Alloha, "alloha-search");
 
             return Json(piders.OrderByDescending(i => i.index).ToDictionary(k => k.name, v => v.uri));
         }
@@ -610,7 +600,7 @@ namespace Online.Controllers
             #endregion
 
             var conf = ModInit.siteConf;
-            var premiumConf = ModInit.premiumConf;
+            var premiumConf = ModInit.siteConf;
 
             var user = requestInfo.user;
             JObject kitconf = loadKitConf();
@@ -787,7 +777,6 @@ namespace Online.Controllers
                                 VoKinoInvoke.SendOnline(myinit, online, onlineObj);
                         }
                     }
-                    ;
 
                     if (CoreInit.conf.accsdb.enable)
                     {
@@ -861,7 +850,7 @@ namespace Online.Controllers
 
             #region Rezka
             {
-                var myinit = loadKit(conf.Rezka, (j, i, c) =>
+                var myinit = loadKit(premiumConf.Rezka, (j, i, c) =>
                 {
                     if (j.ContainsKey("premium"))
                         i.premium = c.premium;
@@ -869,24 +858,6 @@ namespace Online.Controllers
                 });
 
                 send(myinit, myinit: myinit);
-            }
-            #endregion
-
-            #region Collaps
-            {
-                var myinit = loadKit(conf.Collaps, kitconf, (j, i, c) =>
-                {
-                    if (j.ContainsKey("dash"))
-                        i.dash = c.dash;
-                    if (j.ContainsKey("two"))
-                        i.two = c.two;
-                    return i;
-                });
-
-                send(myinit, "collaps", $"Collaps ({(myinit.dash ? "DASH" : "HLS")})", myinit: myinit);
-
-                if (myinit.two && !myinit.dash)
-                    send(myinit, "collaps-dash", "Collaps (DASH)");
             }
             #endregion
 
@@ -914,42 +885,9 @@ namespace Online.Controllers
             send(premiumConf.KinoPub);
             send(premiumConf.IptvOnline, "iptvonline", "iptv.online");
             send(premiumConf.GetsTV);
-            send(conf.Vibix);
-            send(conf.VeoVeo);
-            send(conf.HDVB);
-            send(conf.Kinotochka);
-
-            if (!isanime)
-                send(conf.FlixCDN);
-
-            if (PlaywrightBrowser.Status != PlaywrightStatus.disabled)
-            {
-                send(conf.Mirage);
-                send(conf.Kinobase);
-                send(conf.Kinogo);
-                send(conf.Videoseed);
-            }
-
-            if (kinopoisk_id > 0)
-            {
-                send(conf.CDNvideohub, "cdnvideohub", "VideoHUB");
-
-                if (conf.VideoDB.rhub || conf.VideoDB.priorityBrowser == "http" || PlaywrightBrowser.Status != PlaywrightStatus.disabled)
-                    send(conf.VideoDB);
-
-                if (serial == -1 || serial == 0)
-                    send(conf.FanCDN);
-            }
 
             if (serial == -1 || serial == 0)
-            {
-                if (!isanime)
-                    send(conf.LeProduction);
-
-                send(conf.RutubeMovie, "rutubemovie", "Rutube");
-                send(conf.VkMovie, "vkmovie", "VK Видео");
                 send(premiumConf.iRemux, "remux");
-            }
 
             #region checkOnlineSearch
             if (ModInit.conf.checkOnlineSearch && !string.IsNullOrEmpty(id))
@@ -1049,9 +987,6 @@ namespace Online.Controllers
                             string rezkaq = init.premium ? " ~ 2160p" : " ~ 720p";
                             quality = string.IsNullOrEmpty(quality) ? rezkaq : quality;
                         }
-
-                        if (balanser == "collaps")
-                            quality = init.dash ? " ~ 1080p" : " ~ 720p";
                     }
 
                     if (quality == string.Empty)
@@ -1069,52 +1004,19 @@ namespace Online.Controllers
                             case "remux":
                             case "pidtor":
                             case "rhsprem":
-                            case "mirage":
-                            case "videodb":
                             case "iptvonline":
-                            case "plvideo":
-                            case "rutubemovie":
-                            case "vkmovie":
-                            case "cdnvideohub":
                                 quality = " ~ 2160p";
                                 break;
-                            case "kinobase":
-                            case "kinogo":
                             case "getstv":
-                            case "vcdn":
-                            case "videocdn":
-                            case "lumex":
-                            case "vibix":
-                            case "videoseed":
-                            case "hdvb":
-                            case "redheadsound":
-                            case "iframevideo":
-                            case "lostfilmhd":
-                            case "vdbmovies":
-                            case "collaps-dash":
-                            case "fancdn":
-                            case "veoveo":
                             case "vokino-vibix":
                             case "vokino-monframe":
                             case "vokino-remux":
                             case "vokino-ashdi":
                             case "vokino-hdvb":
-                            case "flixcdn":
-                            case "leproduction":
                                 quality = " ~ 1080p";
                                 break;
-                            case "voidboost":
-                            case "kinotochka":
                             case "rhs":
                                 quality = " ~ 720p";
-                                break;
-                            case "kinokrad":
-                            case "kinoprofi":
-                            case "seasonvar":
-                                quality = " - 480p";
-                                break;
-                            case "cdnmovies":
-                                quality = " - 360p";
                                 break;
                             default:
                                 if (EventListener.OnlineApiQuality != null)

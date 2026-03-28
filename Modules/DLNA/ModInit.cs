@@ -1,5 +1,4 @@
 ﻿using DLNA.Controllers;
-using DLNA.CRON;
 using Shared;
 using Shared.Services;
 using Shared.Models.AppConf;
@@ -7,6 +6,7 @@ using Shared.Models.Events;
 using Shared.Models.Module;
 using Shared.Models.Module.Interfaces;
 using System.Collections.Generic;
+using DLNA.Services;
 
 namespace DLNA
 {

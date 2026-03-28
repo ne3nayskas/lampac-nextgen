@@ -11,7 +11,7 @@ namespace Online.Controllers
 
         iRemuxInvoke oninvk;
 
-        public iRemux() : base(ModInit.premiumConf.iRemux)
+        public iRemux() : base(ModInit.siteConf.iRemux)
         {
             requestInitializationAsync = async () =>
             {

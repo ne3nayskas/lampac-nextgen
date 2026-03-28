@@ -14,7 +14,7 @@ namespace Online.Controllers
         List<HeadersModel> bearer;
         static readonly HttpClient httpClient = FriendlyHttp.CreateHttpClient();
 
-        public GetsTV() : base(ModInit.premiumConf.GetsTV)
+        public GetsTV() : base(ModInit.siteConf.GetsTV)
         {
             requestInitialization += () =>
             {
@@ -200,7 +200,7 @@ namespace Online.Controllers
             if (await IsRequestBlocked(rch: true, rch_check: !play))
                 return badInitMsg;
 
-            rhubFallback:
+        rhubFallback:
             var cache = await InvokeCacheResult<MediaStreamRoot>($"getstv:view:stream:{id}:{init.token}", 10, async e =>
             {
                 var root = await httpHydra.Get<MediaStreamRoot>($"{init.host}/api/media/{id}?format=m3u8&protocol=https",

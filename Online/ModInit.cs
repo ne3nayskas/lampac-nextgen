@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Online.Config;
-using Online.Controllers;
 using Online.SQL;
 using Shared.Models.AppConf;
 using Shared.Models.Events;
@@ -15,7 +14,6 @@ namespace Online
         public static string modpath;
         public static ModuleConf conf;
         public static PidTorSettings PidTor;
-        public static PremiumConf premiumConf;
         public static SiteConf siteConf;
 
         public void Configure(ConfigureModel app)
@@ -30,7 +28,6 @@ namespace Online
             updateConf();
             EventListener.UpdateInitFile += updateConf;
 
-            VeoVeo.database = JsonHelper.ListReader<Models.VeoVeo.Movie>("data/veoveo.json", 130_000).Result;
 
             ExternalidsContext.Initialization(baseconf.app.ApplicationServices);
 
@@ -79,7 +76,6 @@ namespace Online
                 redapi = "http://jac.red"
             });
 
-            premiumConf = ModuleInvoke.DeserializeInit(new PremiumConf());
             siteConf = ModuleInvoke.DeserializeInit(new SiteConf());
         }
     }
