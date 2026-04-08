@@ -1,12 +1,13 @@
 # TelegramAuth
 
-HTTP API и файловое хранилище для привязки **UID устройства Lampa** к учётке Telegram. Работает с [TelegramAuthBot](../TelegramAuthBot/README.md) и с клиентским плагином (см. [обзор Community](../README.md) — `deny.js` / `telegram_auth_gate.js`).
+HTTP API и файловое хранилище для привязки **UID устройства Lampa** к учётке Telegram. Проект: **`Modules/Community/TelegramAuth/`**. Работает с [TelegramAuthBot](../TelegramAuthBot/README.md) и с клиентским плагином (см. [обзор Community](../README.md) — `deny.js` / `telegram_auth_gate.js`).
 
 ---
 
 ## Включение
 
-- `manifest.json`: `"enable": true`.
+- Убедитесь, что **`TelegramAuth`** (и при использовании бота — **`TelegramAuthBot`**) **нет** в **`BaseModule.SkipModules`** в `init.conf` (в шаблоне [`config/base.conf`](../../../config/base.conf) оба отключены по умолчанию).
+- [`manifest.json`](manifest.json): **`"enable": true`**.
 - `init.conf`: секция **`TelegramAuth`**. Пример: [`init.merge.example.json`](init.merge.example.json).
 
 ---

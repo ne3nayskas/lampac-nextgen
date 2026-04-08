@@ -1,19 +1,21 @@
 # TelegramAuthBot
 
-Фоновый **Telegram-бот** (long polling): привязка UID устройства к учётке в [TelegramAuth](../TelegramAuth/README.md), статус, устройства, админ-импорт/очистка через HTTP.
+Фоновый **Telegram-бот** (long polling): привязка UID устройства к учётке в [TelegramAuth](../TelegramAuth/README.md), статус, устройства, админ-импорт/очистка через HTTP. Проект: **`Modules/Community/TelegramAuthBot/`**.
 
 **Клиент Lampa** (замена `deny.js`, оверлей входа): [Community README](../README.md).
+
+## Включение
+
+1. В шаблоне [`config/base.conf`](../../../config/base.conf) **`TelegramAuthBot`** и **`TelegramAuth`** по умолчанию в **`BaseModule.SkipModules`** — уберите оба имени из списка, иначе модули не загрузятся.
+2. [`manifest.json`](manifest.json): **`"enable": true`**.
+3. `init.conf`: секция **`TelegramAuthBot`**. Пример: [`init.merge.example.json`](init.merge.example.json).
+
+При `enable: true` и пустом `bot_token` в лог пишется предупреждение; long polling **не стартует**.
 
 ## Зависимости
 
 1. **Модуль TelegramAuth** должен быть загружен и доступен по HTTP с того хоста/порта, который вы укажете в `lampac_base_url`.
 2. Профиль в TelegramAuth: либо уже есть запись, либо включён `auto_provision_users`, либо владелец попадает в базу при **старте Lampac** по `TelegramAuth.owner_telegram_ids` (см. [TelegramAuth](../TelegramAuth/README.md)).
-
-## Включение
-
-В `manifest.json`: `"enable": true`. Конфигурация в `init.conf`: секция **`TelegramAuthBot`**. Пример: [`init.merge.example.json`](init.merge.example.json).
-
-При `enable: true` и пустом `bot_token` в лог пишется предупреждение; long polling **не стартует**.
 
 ## Конфигурация (`TelegramAuthBot`)
 

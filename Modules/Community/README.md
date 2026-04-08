@@ -1,6 +1,10 @@
 # Community: Telegram-авторизация
 
-Краткая карта модулей и клиентской части (Lampa). Подробности по API и конфигу — в README соответствующего модуля.
+Модули расположены в **`Modules/Community/`** ([`NextGen.slnx`](../../NextGen.slnx)). Краткая карта и клиентская часть (Lampa). Подробности по API и конфигу — в README соответствующего подмодуля.
+
+## Включение в поставке по умолчанию
+
+В [`config/base.conf`](../../config/base.conf) в **`BaseModule.SkipModules`** по умолчанию указаны **`TelegramAuth`** и **`TelegramAuthBot`** — хост их не загружает, пока вы не уберёте эти имена из списка. Дополнительно в каждом модуле в **`manifest.json`** должно быть **`"enable": true`**, иначе Roslyn-слой не подхватит проект.
 
 ## Состав
 
@@ -27,7 +31,7 @@
 ### Где это подключается
 
 - В **`lampainit.js`** в функции `start()` есть плейсхолдер **`{deny}`**.
-- [ApiController.cs](../LampaWeb/Controllers/ApiController.cs) при **`accsdb.enable`** подставляет в `{deny}` **содержимое файла** `Modules/LampaWeb/plugins/deny.js` (с заменой `{cubMesage}` на `accsdb.authMesage`). Если accsdb выключен, `{deny}` очищается.
+- [ApiController.cs](../../LampaWeb/Controllers/ApiController.cs) при **`accsdb.enable`** подставляет в `{deny}` **содержимое файла** `Modules/LampaWeb/plugins/deny.js` (с заменой `{cubMesage}` на `accsdb.authMesage`). Если accsdb выключен, `{deny}` очищается.
 - Скрипт **`telegram_auth_gate.js`** отдаётся отдельным маршрутом **`GET …/telegram_auth_gate.js`** с подстановкой `{localhost}` и `{country}` (как у других плагинов LampaWeb).
 
 ### Что делает `deny.js` (стандарт)

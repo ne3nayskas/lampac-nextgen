@@ -1,6 +1,8 @@
 # ExternalBind
 
-Опциональный модуль: для **заданных URL привязки Lite / Online** запрос считается «локальным» при классификации (`RequestModel.IsLocalIp`).
+Опциональный модуль в **`Modules/ExternalBind/`**: для **заданных URL привязки Lite / Online** запрос считается «локальным» при классификации (`RequestModel.IsLocalIp`).
+
+В [`manifest.json`](manifest.json) по умолчанию **`"enable": false`**. В [корневом README](../../README.md) модуль перечислен в таблице модулей.
 
 ## Зачем нужен
 

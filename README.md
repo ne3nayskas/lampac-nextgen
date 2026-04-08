@@ -45,6 +45,7 @@
 10. [API-эндпоинты](#api-эндпоинты)
 11. [Зависимости](#зависимости)
 12. [Структура проекта](#структура-проекта)
+13. [Дополнительная документация в репозитории](#дополнительная-документация-в-репозитории) (в т.ч. Core, Shared, Online)
 
 ---
 
@@ -59,51 +60,54 @@
 ## Архитектура
 
 ```text
-┌────────────────────────────────────────────────────────────────┐
-│  Core  (ASP.NET Core Web Host, порт 9118)                      │
-│  Program.cs → Startup.cs → Middleware Pipeline                 │
-├────────────────────┬───────────────────────────────────────────┤
-│  Shared (lib)      │  BaseController, CoreInit (конфиг),       │
-│                    │  модели, сервисы, Playwright, HTTP-пулы   │
-├────────────────────┴───────────────────────────────────────────┤
-│  Динамически загружаемые модули                                │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐    │
-│  │ Online  │ │  SISI   │ │ Catalog  │ │    LampaWeb       │    │
-│  │(VOD API)│ │ (18+)   │ │(каталог) │ │(Lampa UI)         │    │
-│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘    │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐    │
-│  │TorrServr│ │  DLNA   │ │  JacRed  │ │   Transcoding     │    │
-│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘    │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐    │
-│  │TmdbProxy│ │  Sync   │ │ TimeCode │ │     Tracks        │    │
-│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘    │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐    │
-│  │CubProxy │ │ WebLog  │ │ NextHUB  │ │ OnlinePacks       │    │
-│  │         │ │         │ │ /nexthub │ │ RUS/Anime/ENG/UKR │    │
-│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘    │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Core  (ASP.NET Core Web Host, порт 9118)                       │
+│  Program.cs → Startup.cs → Middleware Pipeline                  │
+├────────────────────┬────────────────────────────────────────────┤
+│  Shared (lib)      │  BaseController, CoreInit (конфиг),        │
+│                    │  модели, сервисы, Playwright, HTTP-пулы    │
+├────────────────────┴────────────────────────────────────────────┤
+│  Динамически загружаемые модули                                 │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐     │
+│  │ Online  │ │  SISI   │ │ Catalog  │ │    LampaWeb       │     │
+│  │(VOD API)│ │ + Adult │ │(каталог) │ │(Lampa UI)         │     │
+│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘     │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐     │
+│  │TorrServr│ │  DLNA   │ │  JacRed  │ │   Transcoding     │     │
+│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘     │
+│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌───────────────────┐     │
+│  │TmdbProxy│ │  Sync   │ │ TimeCode │ │     Tracks        │     │
+│  │CubProxy │ │ WebLog  │ │ NextHUB  │ │  AdminPanel, Kit  │     │
+│  └─────────┘ └─────────┘ └──────────┘ └───────────────────┘     │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  Modules/OnlineRUS · OnlinePaid · OnlineAnime · OnlineENG │  │
+│  │  OnlineUKR · OnlineGEO  — по одному проекту на провайдера │  │
+│  │  Modules/Adult/* — платформы 18+ (маршруты /phub, /xnx…)  │  │
+│  │  Modules/Community/* — TelegramAuth, TelegramAuthBot      │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 **Слои:**
 
 | Слой | Описание |
 | --- | --- |
-| **Core** | Точка входа, Middleware Pipeline, основной `ApiController` |
-| **Shared** | Общие модели, базовые контроллеры, конфигурация, HTTP-пулы |
-| **Online** | Ядро VOD: основные провайдеры; часть источников вынесена в **OnlinePacks** (`Modules/OnlinePacks/`: RUS, Anime, ENG, UKR, GEO) |
-| **SISI** | Модуль контента 18+: 15 платформ (см. `SISI/README.md`) |
-| **Modules/** | Остальные функциональные модули (каталог, прокси, TorrServer, NextHUB, Sync/Storage и др.) + упаковки Online |
+| **Core** | Точка входа, Middleware Pipeline, основной `ApiController`, часть статики в `Core/wwwroot/`. Подробнее: [Core/README.md](Core/README.md) |
+| **Shared** | Общие модели, базовые контроллеры, конфигурация, HTTP-пулы, Roslyn. Подробнее: [Shared/README.md](Shared/README.md) |
+| **Online** | Ядро VOD (`Online/`): общие контроллеры и провайдеры; дополнительные источники — **отдельные проекты** в `Modules/OnlineRUS`, `OnlinePaid`, `OnlineAnime`, `OnlineENG`, `OnlineUKR`, `OnlineGEO` |
+| **SISI** | Общий модуль 18+ (`SISI/`): плагин `/sisi.js`, SQLite (история, закладки), лимиты WAF. Платформы — в **`Modules/Adult/<Имя>/`**. Подробнее: [SISI/README.md](SISI/README.md) |
+| **Modules/** | Функциональные модули (каталог, прокси в `Modules/Proxy/`, TorrServer, NextHUB, Sync и др.), опционально **AdminPanel**, **Kit**, **ExternalBind**, **Community** |
 
-Сборочные модули (Online, SISI, Catalog, прокси, синхронизация и др.) подключаются как **скомпилированные сборки** из каталога `runtimes/references/` при старте процесса (`Core.dll`). Параллельно в образе/публикации присутствуют каталоги **`module/`** и **`mods/`**: туда копируются исходники из `Modules/`, `Online/`, `SISI/` и `TestModules/` (см. `Core.csproj`) — их компилирует **Roslyn** (`CSharpEval`) при запуске, что даёт горячую подгрузку и пользовательские оверлеи. Дополнительно пользователь может положить свои модули в **`mods/`** на машине с уже развёрнутым сервером (рядом с `Core.dll`), не пересобирая solution целиком.
+Сборочные модули (Online, SISI, Catalog, прокси, синхронизация и др.) подключаются как **скомпилированные сборки** из каталога `runtimes/references/` при старте процесса (`Core.dll`). Параллельно в образе/публикации присутствуют каталоги **`module/`** и **`mods/`**: туда копируются исходники из `Modules/` (с сохранением вложенных путей, например `module/OnlineRUS/Rezka/…`), `Online/`, `SISI/` и `TestModules/` (см. `Core/Core.csproj`) — их компилирует **Roslyn** (`CSharpEval`) при запуске, что даёт горячую подгрузку и пользовательские оверлеи. Дополнительно пользователь может положить свои модули в **`mods/`** на машине с уже развёрнутым сервером (рядом с `Core.dll`), не пересобирая solution целиком.
 
 ---
 
 ## Возможности
 
-- **~54 VOD- и аниме-источника** — ядро `Online/` (Rezka, Filmix, KinoPub и др.) + пакеты **OnlinePacks** (`OnlineRUS`, `OnlineAnime`, `OnlineENG`, `OnlineUKR`, `OnlineGEO`): HDVB, Collaps, Kodik, VidSrc, Kinoflix и другие
-- **10 аниме-провайдеров** в `OnlineAnime` — AniLibria, AniLiberty, AnimeGo, AniMedia, Kodik и др.
+- **Десятки VOD- и аниме-источников** — ядро `Online/` (в т.ч. PiTor и др.) + отдельные провайдерные проекты в **`Modules/OnlineRUS`**, **`OnlinePaid`**, **`OnlineAnime`**, **`OnlineENG`**, **`OnlineUKR`**, **`OnlineGEO`** (HDVB, Collaps, Kodik, VidSrc, Kinoflix, Rezka, Filmix и другие)
+- **Аниме-провайдеры** в `Modules/OnlineAnime/` — AniLibria, AniLiberty, AnimeGo, AniMedia, Kodik, AnimeON, Mikai и др.
 - **Англоязычный контент** — VidSrc, AutoEmbed, SmashyStream, TwoEmbed, VidLink и другие
-- **SISI (18+)** — PornHub, XVideos, XHamster, Chaturbate, BongaCams и другие
+- **SISI (18+)** — общий модуль `SISI/` + платформы в **`Modules/Adult/`** (PornHub, XVideos, XHamster, Chaturbate, BongaCams и другие)
 - **TorrServer** — встроенный торрент-сервер, управляемый как подпроцесс
 - **DLNA/UPnP** — медиасервер для локальных файлов
 - **JacRed** — агрегатор торрент-индексаторов (совместим с Jackett)
@@ -215,11 +219,14 @@ journalctl -u lampac -f
 Требования: .NET SDK 10.0+
 
 ```bash
-# Сборка
+# Сборка (обёртка над dotnet publish)
 ./build.sh
 
 # Или напрямую
 dotnet publish Core/Core.csproj -c Release -o publish
+
+# Сборка всех проектов из solution (проверка компиляции модулей)
+dotnet build NextGen.slnx
 
 # Запуск
 cd publish
@@ -379,21 +386,26 @@ RUNTIME_ID=linux-arm64 ./build.sh
 
 ## Модули
 
-**Примечание по статусу модулей по умолчанию:** согласно [`config/base.conf`](config/base.conf), в `SkipModules` по умолчанию указаны **Catalog**, **DLNA**, **Sync**, **SyncEvents**, **Storage**, **Tracks**, **Transcoding** и **WebLog**. Также по умолчанию отключены **WAF** и **accsdb** (аутентификация).
+**Примечание по статусу модулей по умолчанию:** согласно [`config/base.conf`](config/base.conf), в `SkipModules` по умолчанию указаны **Catalog**, **DLNA**, **Sync**, **SyncEvents**, **Storage**, **Tracks**, **Transcoding**, **WebLog**, **TelegramAuth** и **TelegramAuthBot**. Также по умолчанию отключены **WAF** и **accsdb** (аутентификация).
 
 > [!WARNING]
 > Модули **DLNA**, **Tracks**, **Transcoding** и **Catalog** не выполняют экранирование входящих запросов. **Не включайте их на публично доступном VPS** без ограничения доступа. Рекомендуется либо не активировать эти модули на публичном сервере, либо закрыть к ним доступ на уровне firewall/reverse proxy (разрешить только доверенные IP).
 
 | Модуль | По умолч. | Описание |
 | --- | :---: | --- |
-| **Online** | ✅ вкл | VOD: ядро `Online/` + **OnlinePacks** (RUS, Anime, ENG, UKR, GEO). Плагин `/online.js`. WAF: 10 req/s на `/lite/`. |
-| **SISI** | ✅ вкл | Контент 18+: **15** встроенных платформ (см. `SISI/README.md`). Плагин `/sisi.js`. История и закладки в SQLite. |
+| **Online** | ✅ вкл | VOD: ядро [`Online/`](Online/README.md) (`/online.js`, агрегаты `/lite/…`) + провайдеры в **`Modules/OnlineRUS`**, **`OnlinePaid`**, **`OnlineAnime`**, **`OnlineENG`**, **`OnlineUKR`**, **`OnlineGEO`**. WAF: 10 req/s на `/lite/`. |
+| **SISI** | ✅ вкл | Модуль 18+: общая логика в `SISI/` (плагин `/sisi.js`, SQLite, закладки/история). Платформы — **`Modules/Adult/*`**. См. [SISI/README.md](SISI/README.md). |
 | **Catalog** | ⛔ откл | Браузер каталогов сайтов на основе YAML-описаний из папки `sites/`. Эндпоинт `/catalog/`. Без экранирования запросов — только в доверенной сети. |
 | **CubProxy** | ✅ вкл | HTTP/HTTPS прокси с файловым кешем (`cache/cub/`), FileSystemWatcher для инвалидации кеша. |
 | **DLNA** | ⛔ откл | DLNA/UPnP медиасервер. Обслуживает локальные файлы, автозагрузка трекеров торрентов. Форматы: aac, flac, mp4, mkv, ts, webm, avi и другие. Без экранирования запросов — только в доверенной сети. |
 | **JacRed** | ✅ вкл | Агрегатор торрент-индексаторов (совместимый с Jackett API). Источники: Rutor, Megapeer, Kinozal, Rutracker, NNMClub, Toloka, Bitru и другие. |
 | **LampaWeb** | ✅ вкл | Встроенный хостинг Lampa Web UI. Автообновление с GitHub каждые 90 минут. |
-| **NextHUB** | ✅ вкл | Дополнительный браузер 18+ по YAML (`Modules/NextHUB/sites/`, **42** сайта в поставке). `GET /nexthub?plugin=…`. См. `Modules/NextHUB/README.md`. WAF: 5 req/s на `/nexthub`. |
+| **NextHUB** | ✅ вкл | Дополнительный браузер 18+ по YAML (`Modules/NextHUB/sites/`). `GET /nexthub?plugin=…`. См. [README](Modules/NextHUB/README.md). WAF: 5 req/s на `/nexthub`. |
+| **AdminPanel** | ⛔ откл (manifest) | Веб-админка и JSON API (типичные пути `/adminpanel/`, `/adminpanel/api/`). В [`Modules/AdminPanel/manifest.json`](Modules/AdminPanel/manifest.json) по умолчанию `"enable": false`. |
+| **Kit** | ✅ вкл | Сервисный модуль (шифрование потоков и связанная логика; конфиг `kit` в `init.conf`). |
+| **ExternalBind** | ⛔ откл (manifest) | Дополнительные привязки/маршруты; по умолчанию выключен в [`Modules/ExternalBind/manifest.json`](Modules/ExternalBind/manifest.json). См. [README](Modules/ExternalBind/README.md). |
+| **TelegramAuth** | ⛔ откл (base) | Авторизация через Telegram — [README](Modules/Community/TelegramAuth/README.md), обзор [Community](Modules/Community/README.md). |
+| **TelegramAuthBot** | ⛔ откл (base) | Бот для Telegram-авторизации — [README](Modules/Community/TelegramAuthBot/README.md). |
 | **Sync** | ⛔ откл | Синхронизация хранилища и закладок между устройствами. Эндпоинты `/storage/`, `/bookmark/`. SQLite-бэкенд. Для расширенной схемы см. **SyncEvents** и **Storage**. |
 | **SyncEvents** | ⛔ откл | Трансляция событий синхронизации через NWS (`NwsEvents`). |
 | **Storage** | ⛔ откл | Модуль хранилища в связке с Sync: NWS (`onlyreg`), пользовательские лимиты WAF из конфигурации модуля. |
@@ -489,8 +501,12 @@ RUNTIME_ID=linux-arm64 ./build.sh
 | Провайдер | Сервис |
 | --- | --- |
 | `Ashdi` | Ashdi |
+| `BamBoo` | BamBoo |
 | `Eneyida` | Eneyida |
+| `HdvbUA` | HDVB (UA) |
 | `Kinoukr` | KinoUkr (офлайн БД `data/kinoukr.json`, ~130k записей) |
+| `Tortuga` | Tortuga |
+| `UaKino` | UaKino |
 
 ### SISI (контент 18+)
 
@@ -514,7 +530,7 @@ RUNTIME_ID=linux-arm64 ./build.sh
 
 ### NextHUB (18+)
 
-Модуль **NextHUB** — витрина дополнительных сайтов 18+ по описаниям **YAML** (парсинг списков и просмотр через общий UI). В репозитории: каталог [`Modules/NextHUB/sites/`](Modules/NextHUB/sites/) (**42** файла `.yaml`). Имя файла без расширения — значение параметра `plugin` в URL.
+Модуль **NextHUB** — витрина дополнительных сайтов 18+ по описаниям **YAML** (парсинг списков и просмотр через общий UI). В репозитории: каталог [`Modules/NextHUB/sites/`](Modules/NextHUB/sites/) (десятки описаний `.yaml`; имя файла без расширения — значение параметра `plugin` в URL). Пример базового шаблона: `Modules/NextHUB/examples/base.yaml`.
 
 - **Маршрут:** `GET /nexthub` — параметры: `plugin` (обязателен), опционально `search`, `sort`, `cat`, `model`, `pg` (см. `ListController`).
 - **Конфиг** (`init.conf`, секция `NextHUB`): `sites_enabled` — если задана непустая строка, плагин разрешён только если его имя **содержится в строке** как подстрока (удобно перечислять имена через запятую, например `pornhub,beeg`); иначе доступны все YAML из `sites/`.
@@ -597,7 +613,8 @@ RUNTIME_ID=linux-arm64 ./build.sh
 | `HtmlAgilityPack` | 1.12.4 | Парсинг HTML |
 | `MaxMind.GeoIP2` | 5.4.1 | GeoIP (базы `GeoLite2-*.mmdb` включены в поставку) |
 | `Newtonsoft.Json` | 13.0.4 | JSON-сериализация |
-| `Microsoft.EntityFrameworkCore.Sqlite` | 10.0.2 | ORM для SQLite (Sync, TimeCode, SISI, ExternalIds) |
+| `Microsoft.EntityFrameworkCore` (+ Sqlite, Design) | 10.0.2 | ORM для SQLite (Sync, TimeCode, SISI, ExternalIds) |
+| `Microsoft.Extensions.DependencyModel` | 10.0.2 | Загрузка зависимостей при динамической компиляции модулей |
 | `Microsoft.IO.RecyclableMemoryStream` | 3.0.1 | Пул памяти для потоков |
 | `NetVips` / `NetVips.Native` | 3.2.0 / 8.18.0 | Обработка изображений (libvips) |
 | `YamlDotNet` | 16.3.0 | Парсинг YAML-конфигурации |
@@ -609,9 +626,11 @@ RUNTIME_ID=linux-arm64 ./build.sh
 
 ## Структура проекта
 
+Решение: [`NextGen.slnx`](NextGen.slnx) — в нём сгруппированы **Core**, **Shared**, **Online**, **SISI**, **TestModules** и дерево **`Modules/`** (включая вложенные папки по доменам).
+
 ```text
 lampac/
-├── Core/                       # Точка входа, Middleware Pipeline
+├── Core/                       # Точка входа, Middleware Pipeline (см. Core/README.md)
 │   ├── Program.cs              # Запуск приложения, инициализация
 │   ├── Startup.cs              # DI-контейнер, HTTP-клиенты, загрузка модулей
 │   ├── Controllers/            # ApiController, RchApiEndpoints
@@ -619,47 +638,74 @@ lampac/
 │   ├── Services/               # CronCacheWatcher, NativeWebSocket
 │   ├── data/                   # GeoIP базы, статические JSON-базы
 │   ├── plugins/                # JS-плагины (RCH, NWS)
-│   └── wwwroot/                # Статические файлы
-├── Shared/                     # Общая библиотека
+│   └── wwwroot/                # Статика хоста (SISI UI, stats, buy и др.)
+├── Shared/                     # Общая библиотека (см. Shared/README.md)
 │   ├── CoreInit.cs             # Загрузка и hot-reload конфигурации
 │   ├── BaseController.cs       # Базовый контроллер
 │   ├── Models/                 # Общие модели данных
 │   └── Services/               # Shared-сервисы
-├── Online/                     # Ядро VOD-модуля
-│   ├── Controllers/            # Основные провайдеры (RU и общие)
-│   ├── Config/                 # Конфигурационные модели
-│   ├── ModInit.cs              # Инициализация модуля, загрузка БД
-│   └── OnlineApi.cs            # `/online.js` эндпоинт
-├── SISI/                       # Модуль контента 18+
-│   ├── Controllers/            # Контроллеры платформ
-│   ├── ModInit.cs              # Инициализация, SQLite, таймер очистки
-│   └── SisiApi.cs              # `/sisi.js` эндпоинт
-├── Modules/                    # Дополнительные модули и пакеты Online
+├── Online/                     # Ядро VOD (см. Online/README.md)
+│   ├── Controllers/
+│   ├── Config/
+│   ├── ModInit.cs
+│   └── OnlineApi.cs
+├── SISI/                       # Общий модуль 18+ (/sisi.js, SQLite, закладки)
+│   ├── ModInit.cs
+│   ├── SisiApi.cs
+│   └── …                       # см. SISI/README.md; платформы — в Modules/Adult/
+├── Modules/
+│   ├── AdminPanel/             # Админка (по умолчанию выключена в manifest)
+│   ├── Adult/                  # Платформы 18+ (по одному проекту на источник)
 │   ├── Catalog/
-│   ├── CubProxy/
+│   ├── Community/              # TelegramAuth, TelegramAuthBot
 │   ├── DLNA/
+│   ├── ExternalBind/
 │   ├── JacRed/
+│   ├── Kit/
 │   ├── LampaWeb/
-│   ├── NextHUB/
-│   ├── OnlinePacks/            # OnlineRUS, OnlineAnime, OnlineENG, OnlineUKR, OnlineGEO
-│   ├── Proxy/                  # TmdbProxy и др.
-│   ├── Sync/                   # Sync, TimeCode, SyncEvents, Storage
+│   ├── NextHUB/                # sites/*.yaml, examples/
+│   ├── OnlineAnime/            # AniLibria, Kodik, … (подпроекты)
+│   ├── OnlineENG/
+│   ├── OnlineGEO/
+│   ├── OnlinePaid/             # Rezka, Filmix, KinoPub, …
+│   ├── OnlineRUS/
+│   ├── OnlineUKR/
+│   ├── Proxy/                  # CubProxy, TmdbProxy
+│   ├── Sync/                   # Sync, SyncEvents, Storage, TimeCode
 │   ├── TorrServer/
 │   ├── Tracks/
 │   ├── Transcoding/
 │   └── WebLog/
-├── TestModules/                # Тестовые/примерные модули (в publish → mods/)
+├── TestModules/                # Примеры (в publish копируются в mods/)
 │   └── Lamson/
 ├── config/
-│   ├── base.conf               # Базовый шаблон конфигурации
+│   ├── base.conf
 │   ├── example.init.conf
 │   └── example.init.yaml
-├── docker-compose.yaml         # Compose (прод), корень репозитория
-├── docker-compose.dev.yaml     # Compose для разработки (порт 29118)
-├── Dockerfile                  # Мультистейдж, мультиплатформ образ
-├── build.sh                    # Скрипт сборки
-├── install.sh                  # Скрипт нативной установки (Debian/Ubuntu)
-└── NextGen.sln                 # Solution-файл
+├── docker-compose.yaml
+├── docker-compose.dev.yaml
+├── Dockerfile
+├── build.sh                    # dotnet publish Core/Core.csproj → publish/
+├── install.sh
+└── NextGen.slnx
 ```
+
+После `dotnet publish` исходники модулей оказываются под **`module/`** (см. `Core/Core.csproj`: `Modules/**` → `module/…`, `Online/` → `module/Online/…`, `SISI/` → `module/SISI/…`), а **TestModules** — под **`mods/`**.
+
+---
+
+## Дополнительная документация в репозитории
+
+| Документ | О чём |
+| --- | --- |
+| [Core/README.md](Core/README.md) | Хост **`Core`**: `Program`/`Startup`, middleware, загрузка **`module/`** и **`mods/`**, ссылки на код |
+| [Shared/README.md](Shared/README.md) | Библиотека **`Shared`**: **`CoreInit`**, базовые контроллеры, **`CSharpEval`**, кеш, HTTP, Playwright |
+| [Online/README.md](Online/README.md) | Ядро VOD **`Online/`**: **`online.js`**, **`/lite/`**, PiTor, **`Externalids`**, связь с **`Modules/Online*`** |
+| [SISI/README.md](SISI/README.md) | Контент 18+: ядро **`SISI/`**, платформы **`Modules/Adult/*`**, таблица маршрутов |
+| [Modules/NextHUB/README.md](Modules/NextHUB/README.md) | YAML-сайты, `/nexthub`, конфиг, WAF |
+| [Modules/Community/README.md](Modules/Community/README.md) | Telegram-авторизация, клиент Lampa (`deny.js`, `telegram_auth_gate.js`), ссылки на API |
+| [Modules/Community/TelegramAuth/README.md](Modules/Community/TelegramAuth/README.md) | HTTP API `/tg/auth/…`, accsdb, хранилище |
+| [Modules/Community/TelegramAuthBot/README.md](Modules/Community/TelegramAuthBot/README.md) | Long polling-бот, команды, конфиг |
+| [Modules/ExternalBind/README.md](Modules/ExternalBind/README.md) | Пути привязки Lite/Online и флаг локального IP |
 
 ---
