@@ -74,6 +74,8 @@
 
         public string host { get; set; }
 
+        public bool aes { get; set; }
+
         public string login { get; set; }
 
         public string passwd { get; set; }

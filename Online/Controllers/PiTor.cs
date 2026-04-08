@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Online.Models.PiTor;
 using Shared.Attributes;
 using Shared.Models.Online.Settings;
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Online.Controllers
 {
@@ -345,7 +348,7 @@ namespace Online.Controllers
             if (NoAccessGroup(init, out string error_msg))
                 return Json(new { accsdb = true, error_msg });
 
-            string tr = Regex.Replace(HttpContext.Request.QueryString.Value.Remove(0, 1), "&(account_email|uid|token|title|original_title|rjson|s)=[^&]+", "");
+            string tr = Regex.Replace(HttpContext.Request.QueryString.Value.Remove(0, 1), "&(account_email|uid|token|nws_id|rjson|title|original_title|s)=[^&]+", "");
 
             var cache = await InvokeCacheResult<FileStat[]>($"pidtor:serial:{id}", 60 * 36, textJson: true, onget: async e =>
             {
@@ -442,17 +445,18 @@ namespace Online.Controllers
             string country = requestInfo.Country;
 
             int index = tsid != -1 ? tsid : 1;
-            string magnet = $"magnet:?xt=urn:btih:{id}&" + Regex.Replace(HttpContext.Request.QueryString.Value.Remove(0, 1), "&(account_email|uid|token|tsid)=[^&]+", "");
+            string magnet = $"magnet:?xt=urn:btih:{id}&" + Regex.Replace(HttpContext.Request.QueryString.Value.Remove(0, 1), "&(account_email|uid|token|nws_id|tsid)=[^&]+", "");
 
             #region auth_stream
-            async Task<ActionResult> auth_stream(string host, string login, string passwd, string uhost = null, Dictionary<string, string> addheaders = null)
+            async Task<ActionResult> auth_stream(string host, string login, string passwd, bool aes, string uhost = null, Dictionary<string, string> addheaders = null)
             {
+                login = login
+                    .Replace("{user_uid}", requestInfo.user_uid ?? string.Empty)
+                    .Replace("{user_ip}", requestInfo.IP);
+
                 string memKey = $"pidtor:auth_stream:{id}:{uhost ?? host}";
                 if (!hybridCache.TryGetValue(memKey, out string hash))
                 {
-                    if (login.Contains("{user_uid}"))
-                        login = login.Replace("{user_uid}", requestInfo.user_uid ?? string.Empty);
-
                     var headers = HeadersModel.Init("Authorization", $"Basic {CrypTo.Base64($"{login}:{passwd}")}");
                     headers = httpHeaders(host, HeadersModel.Join(headers, addheaders));
 
@@ -467,6 +471,12 @@ namespace Online.Controllers
                     hybridCache.Set(memKey, hash, DateTime.Now.AddMinutes(1));
                 }
 
+                if (aes)
+                {
+                    string payload = aesRequest(login, passwd, $"{uhost ?? host}/stream?link={hash}&index={index}&play");
+                    return Redirect($"{uhost ?? host}/{payload}");
+                }
+
                 return Redirect($"{uhost ?? host}/stream?link={hash}&index={index}&play");
             }
             #endregion
@@ -478,7 +488,7 @@ namespace Online.Controllers
                     string accs = System.IO.File.ReadAllText("data/ts/accs.db");
                     string passwd = Regex.Match(accs, "\"ts\":\"([^\"]+)\"").Groups[1].Value;
 
-                    return await auth_stream($"http://{CoreInit.conf.listen.localhost}:9080", "ts", passwd, uhost: $"{host}/ts");
+                    return await auth_stream($"http://{CoreInit.conf.listen.localhost}:9080", "ts", passwd, false, uhost: $"{host}/ts");
                 }
 
                 return Redirect($"{host}/ts/stream?link={HttpUtility.UrlEncode(magnet)}&index={index}&play");
@@ -498,7 +508,7 @@ namespace Online.Controllers
                     hybridCache.Set(tskey, ts, DateTime.Now.AddHours(4));
                 }
 
-                return await auth_stream(ts.host, ts.login, ts.passwd, addheaders: ts.headers);
+                return await auth_stream(ts.host, ts.login, ts.passwd, ts.aes, addheaders: ts.headers);
             }
             else
             {
@@ -511,7 +521,7 @@ namespace Online.Controllers
                         hybridCache.Set(tskey, ts, DateTime.Now.AddHours(4));
                     }
 
-                    return await auth_stream(ts, init.base_auth.login, init.base_auth.passwd, addheaders: init.base_auth.headers);
+                    return await auth_stream(ts, init.base_auth.login, init.base_auth.passwd, init.base_auth.aes, addheaders: init.base_auth.headers);
                 }
 
                 string key = $"pidtor:ts4:{id}:{requestInfo.IP}";
@@ -524,5 +534,59 @@ namespace Online.Controllers
                 return Redirect($"{tshost}/stream?link={HttpUtility.UrlEncode(magnet)}&index={index}&play");
             }
         }
+
+
+        #region Matrix.API - onlyAes authorization
+        static string aesRequest(string login, string aeskey, string reqUri)
+        {
+            try
+            {
+                string plainText = JsonConvert.SerializeObject(new
+                {
+                    login,
+                    reqUri
+                });
+
+                using (var aes = Aes.Create())
+                {
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.PKCS7;
+
+                    var i = aeskey.Split("/");
+                    aes.Key = Encoding.UTF8.GetBytes(i[0]);
+                    aes.IV = Encoding.UTF8.GetBytes(i[1]);
+
+                    Span<byte> plainBytes = new byte[Encoding.UTF8.GetByteCount(plainText)];
+
+                    int writtenPlain = Encoding.UTF8.GetBytes(plainText, plainBytes);
+                    if (writtenPlain <= 0)
+                        return string.Empty;
+
+                    int blockSize = aes.BlockSize / 8;
+                    int paddedLen = ((writtenPlain / blockSize) + 1) * blockSize;
+
+                    Span<byte> encrypted = new byte[paddedLen];
+
+                    int cipherLen = aes.EncryptCbc(
+                        plainBytes.Slice(0, writtenPlain),
+                        aes.IV,
+                        encrypted,
+                        PaddingMode.PKCS7);
+
+                    if (cipherLen <= 0)
+                        return string.Empty;
+
+                    return Convert.ToBase64String(encrypted.Slice(0, cipherLen))
+                        .Replace('+', '-')
+                        .Replace('/', '_')
+                        .TrimEnd('=');
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        #endregion
     }
 }
