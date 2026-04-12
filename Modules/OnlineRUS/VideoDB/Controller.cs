@@ -5,6 +5,7 @@ using Shared.Models.Base;
 using Shared.Models.Templates;
 using Shared.PlaywrightCore;
 using Shared.Services;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -19,22 +20,20 @@ namespace VideoDB
 
         [HttpGet]
         [Route("lite/videodb")]
-        async public Task<ActionResult> Index(long kinopoisk_id, string title, string original_title, string t, int s = -1, int sid = -1, bool rjson = false, int serial = -1)
+        async public Task<ActionResult> Index(string uri, string title, string original_title, string t, int s = -1, int sid = -1, bool rjson = false)
         {
-            if (kinopoisk_id == 0)
-                return OnError();
+            string href = DecryptQuery(uri);
+
+            if (string.IsNullOrWhiteSpace(href))
+                return OnError("href");
 
             if (await IsRequestBlocked(rch: true))
                 return badInitMsg;
 
-            var oninvk = new VideoDBInvoke
-            (
-               host,
-               init.apihost
-            );
+            var oninvk = new VideoDBInvoke(host);
 
         rhubFallback:
-            var cache = await InvokeCacheResult<EmbedModel>(ipkey($"videodb:view:{kinopoisk_id}"), 20, textJson: true, onget: async e =>
+            var cache = await InvokeCacheResult<EmbedModel>(ipkey($"videodb:{href}"), 20, textJson: true, onget: async e =>
             {
                 EmbedModel embed = null;
 
@@ -50,14 +49,15 @@ namespace VideoDB
                     if (init.httpversion == 2)
                         httpHydra.RegisterHttp(http2Client);
 
-                    await httpHydra.GetSpan($"{init.apihost}/embed/AN?kinopoisk_id={kinopoisk_id}", newheaders: headers, spanAction: html =>
+                    await httpHydra.GetSpan(href, newheaders: headers, spanAction: html =>
                     {
                         embed = oninvk.Embed(html);
                     });
                 }
                 else
                 {
-                    embed = await oninvk.Embed(kinopoisk_id, uri => black_magic(uri));
+                    ReadOnlySpan<char> html = await black_magic(href);
+                    embed = oninvk.Embed(html);
                 }
 
                 if (embed == null)
@@ -70,7 +70,7 @@ namespace VideoDB
                 goto rhubFallback;
 
             return ContentTpl(cache,
-                () => oninvk.Tpl(cache.Value, accsArgs(string.Empty), kinopoisk_id, title, original_title, t, s, sid, rjson)
+                () => oninvk.Tpl(cache.Value, accsArgs(string.Empty), uri, title, original_title, t, s, sid, rjson, rch?.enable == true)
             );
         }
 
@@ -81,8 +81,10 @@ namespace VideoDB
         [Route("lite/videodb/manifest.m3u8")]
         async public Task<ActionResult> Manifest(string link, bool serial)
         {
+            link = DecryptQuery(link);
+
             if (string.IsNullOrEmpty(link))
-                return OnError();
+                return OnError("link");
 
             if (await IsRequestBlocked(rch: true, rch_check: false))
                 return badInitMsg;
@@ -164,7 +166,7 @@ namespace VideoDB
 
                                     await route.AbortAsync();
                                 }
-                                catch (System.Exception ex)
+                                catch (Exception ex)
                                 {
                                     Log.Error(ex, "CatchId={CatchId}", "id_of0azh8k");
                                 }
@@ -176,7 +178,7 @@ namespace VideoDB
                         }
                     }
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     Log.Error(ex, "CatchId={CatchId}", "id_az6nc5cm");
                 }
@@ -263,7 +265,7 @@ namespace VideoDB
                                 }
                             }
                         }
-                        catch (System.Exception ex)
+                        catch (Exception ex)
                         {
                             Log.Error(ex, "CatchId={CatchId}", "id_o4wf3qjk");
                         }

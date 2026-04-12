@@ -1,13 +1,13 @@
 using Shared.Models.Templates;
 using Shared.Services.Pools;
 using Shared.Services.RxEnumerate;
+using Shared.Services.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Web;
 
 namespace VideoDB
@@ -16,27 +16,14 @@ namespace VideoDB
     {
         #region VideoDBInvoke
         string host;
-        string apihost;
-        public VideoDBInvoke(string host, string apihost)
+
+        public VideoDBInvoke(string host)
         {
             this.host = host != null ? $"{host}/" : null;
-            this.apihost = apihost!;
         }
         #endregion
 
         #region Embed
-        public async Task<EmbedModel> Embed(long kinopoisk_id, Func<string, Task<string>> onget)
-        {
-            string html = await onget.Invoke($"{apihost}/embed/AN?kinopoisk_id={kinopoisk_id}");
-
-            if (string.IsNullOrWhiteSpace(html))
-            {
-                return null;
-            }
-
-            return Embed(html);
-        }
-
         public EmbedModel Embed(ReadOnlySpan<char> html)
         {
             if (html.IsEmpty)
@@ -82,7 +69,7 @@ namespace VideoDB
         #endregion
 
         #region Html
-        public ITplResult Tpl(EmbedModel root, string args, long kinopoisk_id, string title, string original_title, string t, int s, int sid, bool rjson, bool bwa = false, bool rhub = false)
+        public ITplResult Tpl(EmbedModel root, string args, string uri, string title, string original_title, string t, int s, int sid, bool rjson, bool rhub = false)
         {
             if (root?.pl == null || root.pl.Length == 0)
                 return default;
@@ -116,7 +103,7 @@ namespace VideoDB
                             continue;
 
                         string quality = file.Contains("2160p") ? "2160" : file.Contains("1080p") ? "1080" : file.Contains("720p") ? "720" : "480";
-                        streams.Add((host + $"lite/videodb/manifest.m3u8?link={HttpUtility.UrlEncode(link)}{args}", quality));
+                        streams.Add((host + $"lite/videodb/manifest.m3u8?link={CrypTo.EncryptQuery(link)}{args}", quality));
                     }
 
                     if (streams.Count == 0)
@@ -125,7 +112,7 @@ namespace VideoDB
                     streams.Reverse();
                     #endregion
 
-                    if (bwa || rhub)
+                    if (rhub)
                     {
                         mtpl.Append(name, streams[0].link.Replace("/manifest.m3u8", "/manifest"), "call");
                     }
@@ -155,7 +142,7 @@ namespace VideoDB
                         if (string.IsNullOrEmpty(season))
                             continue;
 
-                        tpl.Append(name, host + $"lite/videodb?rjson={rjson}&kinopoisk_id={kinopoisk_id}&rjson={rjson}&title={enc_title}&original_title={enc_original_title}&s={season}&sid={i}", season);
+                        tpl.Append(name, host + $"lite/videodb?rjson={rjson}&uri={HttpUtility.UrlEncode(uri)}&rjson={rjson}&title={enc_title}&original_title={enc_original_title}&s={season}&sid={i}", season);
                     }
 
                     return tpl;
@@ -189,7 +176,7 @@ namespace VideoDB
                             if (!hashvoices.Contains(perevod))
                             {
                                 hashvoices.Add(perevod);
-                                string link = host + $"lite/videodb?rjson={rjson}&kinopoisk_id={kinopoisk_id}&title={enc_title}&original_title={enc_original_title}&s={s}&sid={sid}&t={HttpUtility.UrlEncode(perevod)}";
+                                string link = host + $"lite/videodb?rjson={rjson}&uri={HttpUtility.UrlEncode(uri)}&title={enc_title}&original_title={enc_original_title}&s={s}&sid={sid}&t={HttpUtility.UrlEncode(perevod)}";
 
                                 vtpl.Append(perevod, t == perevod, link);
                             }
@@ -212,13 +199,13 @@ namespace VideoDB
                                 if (string.IsNullOrEmpty(link))
                                     continue;
 
-                                streamquality.Insert(host + $"lite/videodb/manifest.m3u8?serial=true&link={HttpUtility.UrlEncode(link)}{args}", $"{m.Groups[1].Value}p");
+                                streamquality.Insert(host + $"lite/videodb/manifest.m3u8?serial=true&link={CrypTo.EncryptQuery(link)}{args}", $"{m.Groups[1].Value}p");
                             }
 
                             if (!streamquality.Any())
                                 continue;
 
-                            if (bwa || rhub)
+                            if (rhub)
                             {
                                 string streamlink = rhub ? streamquality.Firts().link : null;
 
