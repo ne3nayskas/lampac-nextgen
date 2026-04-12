@@ -56,12 +56,15 @@ namespace TorrServer
             homedir = Path.Combine(homedir, "data", "ts");
             #endregion
 
-            #region tspath
-            tspath = Path.Combine(homedir, "TorrServer-linux");
-
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
                 tspath = Path.Combine(homedir, "TorrServer-windows-amd64.exe");
-            #endregion
+            else
+            {
+                tspath = Path.Combine(homedir, "TorrServer-linux");
+
+                if (File.Exists(tspath))
+                    Bash.Comand($"chmod +x {tspath}");
+            }
 
             if (!File.Exists(tspath))
             {
@@ -182,7 +185,7 @@ namespace TorrServer
 
                         await tsprocess.WaitForExitAsync();
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         Log.Error(ex, "CatchId={CatchId}", "id_7p35pgty");
                     }
