@@ -24,7 +24,7 @@ using Shared.Models.Base;
 using System.Collections.Generic;
 using Shared.Services.Utilities;
 
-namespace Online.Controllers
+namespace Online
 {
     public class OnlineApiController : BaseController
     {
@@ -676,7 +676,7 @@ namespace Online.Controllers
                 if (string.IsNullOrEmpty(url))
                 {
                     url = !string.IsNullOrEmpty(myurl)
-                        ? url = "{localhost}/" + myurl + arg_url
+                        ? url = myurl + arg_url
                         : url = "{localhost}/lite/" + (plugin ?? (init.plugin ?? name).ToLower()) + arg_url;
                 }
 

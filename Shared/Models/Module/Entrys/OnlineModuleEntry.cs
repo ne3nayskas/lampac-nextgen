@@ -24,6 +24,9 @@ namespace Shared.Models.Module.Entrys
                     return;
 
                 Modules = new List<IModuleOnline>();
+                ModulesAsync = new List<IModuleOnlineAsync>();
+                Spiders = new List<IModuleOnlineSpider>();
+                SpidersAsync = new List<IModuleOnlineSpiderAsync>();
 
                 try
                 {
