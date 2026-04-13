@@ -92,12 +92,14 @@
     <Project Path="Modules/OnlineRUS/Kinotochka/Kinotochka.csproj" />
     <Project Path="Modules/OnlineRUS/LeProduction/LeProduction.csproj" />
     <Project Path="Modules/OnlineRUS/Mirage/Mirage.csproj" />
+    <Project Path="Modules/OnlineRUS/PizdatoeHD/PizdatoeHD.csproj" />
     <Project Path="Modules/OnlineRUS/RutubeMovie/RutubeMovie.csproj" />
     <Project Path="Modules/OnlineRUS/VeoVeo/VeoVeo.csproj" />
     <Project Path="Modules/OnlineRUS/Vibix/Vibix.csproj" />
     <Project Path="Modules/OnlineRUS/VideoDB/VideoDB.csproj" />
     <Project Path="Modules/OnlineRUS/Videoseed/Videoseed.csproj" />
     <Project Path="Modules/OnlineRUS/VkMovie/VkMovie.csproj" />
+    <Project Path="Modules/OnlineRUS/ZetflixDB/ZetflixDB.csproj" />
   </Folder>
   <Folder Name="/Modules/OnlineUKR/">
     <Project Path="Modules/OnlineUKR/Ashdi/Ashdi.csproj" />

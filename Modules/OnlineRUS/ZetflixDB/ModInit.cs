@@ -59,7 +59,8 @@ namespace ZetflixDB
                     conf.rch_access = _conf.rch_access;
                     conf.stream_access = _conf.stream_access;
                     conf.priorityBrowser = _conf.priorityBrowser;
-                };
+                }
+                ;
             }
         }
 
