@@ -48,9 +48,9 @@ namespace VeoVeo
 
                 movieid = movie.id;
             }
-        #endregion
+            #endregion
 
-        #region media
+            #region media
         rhubFallback:
 
             var cache = await InvokeCacheResult<List<CatalogItem>>($"{init.plugin}:view:{movieid}", 20, async e =>
@@ -111,11 +111,10 @@ namespace VeoVeo
 
                         foreach (var item in cache.Value)
                         {
-                            var season = item.season?.order ?? 0;
-                            if (hash.Contains(season))
+                            int season = item.season?.order ?? 0;
+                            if (!hash.Add(season))
                                 continue;
 
-                            hash.Add(season);
                             string link = $"{host}/lite/veoveo?rjson={rjson}&movieid={movieid}&kinopoisk_id={kinopoisk_id}&imdb_id={imdb_id}&title={enc_title}&original_title={enc_original_title}&s={season}";
                             tpl.Append($"{season} сезон", link, season);
                         }
@@ -133,23 +132,19 @@ namespace VeoVeo
                         {
                             string name = episode.title;
 
-                            var first = cache.Value?.FirstOrDefault();
-                            if (first != null)
+                            var variants = episode.episodeVariants;
+                            var fileToken = variants?
+                                .OrderByDescending(i => (i.filepath ?? "").Contains(".m3u8"))
+                                .FirstOrDefault();
+
+                            string file = fileToken?.filepath;
+                            if (!string.IsNullOrWhiteSpace(file))
                             {
-                                var variants = first.episodeVariants;
-                                var fileToken = variants?
-                                    .OrderByDescending(i => (i.filepath ?? "").Contains(".m3u8"))
-                                    .FirstOrDefault();
+                                string stream = HostStreamProxy(file);
+                                if (stream.Contains(".json"))
+                                    stream = accsArgs($"{host}/lite/veoveo/parsed.m3u8?link={EncryptQuery(file)}");
 
-                                string file = fileToken?.filepath;
-                                if (!string.IsNullOrWhiteSpace(file))
-                                {
-                                    string stream = HostStreamProxy(file);
-                                    if (stream.Contains(".json"))
-                                        stream = accsArgs($"{host}/lite/veoveo/parsed.m3u8?link={EncryptQuery(file)}");
-
-                                    etpl.Append(name ?? $"{episode.order} серия", title ?? original_title, sArhc, episode.order.ToString(), stream, vast: init.vast);
-                                }
+                                etpl.Append(name ?? $"{episode.order} серия", title ?? original_title, sArhc, episode.order.ToString(), stream, vast: init.vast);
                             }
                         }
 
