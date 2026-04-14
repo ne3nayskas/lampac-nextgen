@@ -59,7 +59,7 @@ namespace PizdatoeHD
                 {
                 reset:
                     string idproxy = proxyids[Interlocked.Increment(ref curentproxy) - 1];
-                    
+
                     Console.WriteLine("\n");
                     Console.WriteLine(i);
                     Console.WriteLine(idproxy);
