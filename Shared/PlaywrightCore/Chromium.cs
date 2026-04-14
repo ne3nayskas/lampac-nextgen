@@ -191,7 +191,7 @@ namespace Shared.PlaywrightCore
                     {
                         _ = keepopen_context.CloseAsync().ConfigureAwait(false);
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         Log.Error(ex, "CatchId={CatchId}", "id_0fjttjws");
                     }
@@ -217,7 +217,7 @@ namespace Shared.PlaywrightCore
                                         .ConfigureAwait(false);
                                 }
                             }
-                            catch (System.Exception ex)
+                            catch (Exception ex)
                             {
                                 Log.Error(ex, "CatchId={CatchId}", "id_r70jpgk4");
                             }
@@ -225,7 +225,7 @@ namespace Shared.PlaywrightCore
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_e93m79g5");
             }
@@ -315,7 +315,7 @@ namespace Shared.PlaywrightCore
                                     await browser.DisposeAsync();
                                 }
                             }
-                            catch (System.Exception ex)
+                            catch (Exception ex)
                             {
                                 Log.Error(ex, "CatchId={CatchId}", "id_phji1t90");
                             }
@@ -324,7 +324,7 @@ namespace Shared.PlaywrightCore
                             {
                                 playwright.Dispose();
                             }
-                            catch (System.Exception ex)
+                            catch (Exception ex)
                             {
                                 Log.Error(ex, "CatchId={CatchId}", "id_7ea64mz2");
                             }
@@ -335,7 +335,7 @@ namespace Shared.PlaywrightCore
                             await CreateAsync();
                         }
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         Serilog.Log.Error(ex, "CatchId={CatchId}", "id_009010ae");
                         stats_ping = (DateTime.Now, -1, ex.Message);
@@ -343,7 +343,7 @@ namespace Shared.PlaywrightCore
                     }
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_gf96yzkh");
             }
@@ -466,8 +466,8 @@ namespace Shared.PlaywrightCore
                     else
                     {
                         stats_newcontext++;
-                        var kpc = await browser.NewContextAsync(baseContextOptions);
-                        page = await kpc.NewPageAsync();
+                        var kpc = await browser.NewContextAsync(baseContextOptions).ConfigureAwait(false);
+                        page = await kpc.NewPageAsync().ConfigureAwait(false);
                     }
                     #endregion
 
@@ -510,7 +510,7 @@ namespace Shared.PlaywrightCore
                     });
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_lwqh27k2");
             }
@@ -526,7 +526,7 @@ namespace Shared.PlaywrightCore
                 if (failedUrl != null && e.Url == failedUrl)
                     completionSource.SetResult(null);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_jqozdabw");
             }
@@ -538,7 +538,7 @@ namespace Shared.PlaywrightCore
             {
                 e.CancelAsync().ConfigureAwait(false);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_1t0vc1ab");
             }
@@ -550,7 +550,7 @@ namespace Shared.PlaywrightCore
             {
                 e.CloseAsync().ConfigureAwait(false);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_zd3oph6k");
             }
@@ -559,7 +559,7 @@ namespace Shared.PlaywrightCore
 
         public void Dispose()
         {
-            if (browser == null || CoreInit.conf.chromium.DEV)
+            if (browser == null || page == null || CoreInit.conf.chromium.DEV)
                 return;
 
             try
@@ -594,7 +594,7 @@ namespace Shared.PlaywrightCore
                     close();
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_k0df4qmv");
             }
@@ -610,7 +610,7 @@ namespace Shared.PlaywrightCore
             {
                 browser.CloseAsync().ContinueWith(t => browser.DisposeAsync());
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex, "CatchId={CatchId}", "id_13g0vhhh");
             }
