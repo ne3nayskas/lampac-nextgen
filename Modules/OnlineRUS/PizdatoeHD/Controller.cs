@@ -229,21 +229,22 @@ namespace PizdatoeHD
                             var cookies = new List<BrowserCookie>();
                             foreach (string line in init.cookie.Split(";"))
                             {
-                                if (string.IsNullOrEmpty(line) || !line.Contains("dle_user_id") || !line.Contains("dle_password"))
-                                    continue;
-
-                                cookies.Add(new BrowserCookie()
+                                if (line.Contains("dle_user_id") || line.Contains("dle_password"))
                                 {
-                                    Domain = "." + Regex.Replace(init.host, "^https?://", ""),
-                                    Expires = excookie,
-                                    Path = "/",
-                                    HttpOnly = true,
-                                    Name = line.Split("=")[0].Trim(),
-                                    Value = line.Split("=")[1].Trim()
-                                });
+                                    cookies.Add(new BrowserCookie()
+                                    {
+                                        Domain = "." + Regex.Replace(init.host, "^https?://", ""),
+                                        Expires = excookie,
+                                        Path = "/",
+                                        HttpOnly = true,
+                                        Name = line.Split("=")[0].Trim(),
+                                        Value = line.Split("=")[1].Trim()
+                                    });
+                                }
                             }
 
-                            await page.Context.AddCookiesAsync(cookies);
+                            if (cookies.Count > 0)
+                                await page.Context.AddCookiesAsync(cookies);
                         }
 
                         if (string.IsNullOrEmpty(voice))
